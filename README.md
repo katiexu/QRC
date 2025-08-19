@@ -18,16 +18,7 @@
 ```
     @qml.qnode(dev, **self.qnode_kwargs)
         def single_qubit_circuit_end(hidden_state, params, n_qubits, n_layers):
-            """修改后的量子循环神经网络单元，返回量子状态作为隐藏状态"""
-            # 准备初始状态（使用前一个时间步的隐藏状态）
-            qml.QubitDensityMatrix(hidden_state, wires=range(n_qubits))
-            # 参数化量子电路
-            for layer in range(n_layers):
-                for i in range(n_qubits):
-                    qml.Rot(*params[layer, i], wires=i)
-                for i in range(n_qubits - 1):
-                    qml.CNOT(wires=[i, i + 1])
-
+            ......
             return [qml.expval(qml.PauliZ(wires=i)) for i in range(self.n_qubits_)]
             
     def circuit(params, input_seq):
