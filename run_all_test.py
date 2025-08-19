@@ -1,6 +1,6 @@
-import weakMeasure_mnist
-import weakMeasure_mnist2
-import weakMeasure_mnist3
+import heils_qrc_end_qubit
+import heils_qrc_end_feature
+import heils_qrc_end_all_features
 from dataset import get_mnist_numpy
 import numpy as np
 
