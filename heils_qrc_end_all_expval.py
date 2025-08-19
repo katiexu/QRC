@@ -146,13 +146,7 @@ class SeparableVariationalClassifier(BaseEstimator, ClassifierMixin):
 
         @qml.qnode(dev, **self.qnode_kwargs)
         def single_qubit_circuit(hidden_state, params, n_qubits, n_layers):
-            """修改后的量子循环神经网络单元，返回量子状态作为隐藏状态"""
-            # 准备初始状态（使用前一个时间步的隐藏状态）
-            if hidden_state is not None:
-                qml.QubitDensityMatrix(hidden_state, wires=range(n_qubits))
-            else:
-                # 初始化状态（|0>态）
-                pass
+            qml.QubitDensityMatrix(hidden_state, wires=range(n_qubits))
 
             # 参数化量子电路
             for layer in range(n_layers):
@@ -172,40 +166,39 @@ class SeparableVariationalClassifier(BaseEstimator, ClassifierMixin):
             rho_2=self.xtorho(input_seq[1])
             rho=jnp.kron(rho_1,rho_2)
 
-            # 5. 执行量子电路，获取新 密度矩阵
+            # 执行量子电路，获取新 密度矩阵
             rho = single_qubit_circuit(rho, params["weights"],
                                        self.n_qubits_, self.n_layers_)
 
-            # 0. 应用 M 矩阵
+            # 应用 M 矩阵
             M = self.M_matrix
             rho = M @ rho @ M.conj().T
             rho /= jnp.trace(rho).real  # 归一化
 
-            # 6. 测量
-
+            # 测量
             expval=self.get_first_3qubit_expvals(rho)
             all_value = [expval]
 
             for x in input_seq[2:]:
 
-                # 3. 计算坍缩后 wires=[1,2,3] 的偏迹
+                # 计算偏迹
                 rho_reduced = self.partial_trace(rho, 3)
 
-                # 4. 合并x 生成新的 密度矩阵
+                # 合并x 生成新的 密度矩阵
                 rho_x=self.xtorho(x)
                 rho=jnp.kron(rho_x, rho_reduced)
 
-                # 5. 执行量子电路，获取新 密度矩阵
+                # 执行量子电路，获取新 密度矩阵
                 rho = single_qubit_circuit(rho, params["weights"],
                                            self.n_qubits_, self.n_layers_)
 
-                # 0. 应用 M 矩阵
+                # 应用 M 矩阵
                 M = self.M_matrix
                 rho = M @ rho @ M.conj().T
                 rho /= jnp.trace(rho).real  # 归一化
 
 
-                # 6. 测量
+                # 测量
                 expval=self.get_first_3qubit_expvals(rho)
                 all_value.append(expval)
 
@@ -318,7 +311,7 @@ if __name__ == "__main__":
     X_test = transform(X_test)
 
 
-    model = SeparableVariationalClassifier(jit=True, max_vmap=32, n_layers=4, n_qubits=6, n_classes=4)
+    model = SeparableVariationalClassifier(jit=False, max_vmap=1, n_layers=4, n_qubits=6, n_classes=4, batch_size=1)
     model.fit(X_train, y_train)
     train_predictions = np.array(model.predict(X_train))
     test_predictions = np.array(model.predict(X_test))
