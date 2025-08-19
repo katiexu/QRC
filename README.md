@@ -13,7 +13,24 @@
         logits = jnp.dot(features, params['linear_weights']) + params['linear_bias']
         return logits
 ```
-1. heils_qrc_end_qubit  
+1. heils_qrc_end_all_expval
+    数据集被分箱8份，以二进制(x,x,x)表示
+``` 
+    X_train = transform(X_train)
+    X_test = transform(X_test)
+``` 
+
+   该模型将每一轮qubit的测量值传入下一层  
+``` 
+    def circuit(params, input_seq):
+        all_expval=[]
+        ...
+        for i, x in enumerate(input_seq):
+            ...
+            all_expval.append(self.get_first_3qubit_expvals(rho))
+        return jnp.array(all_expval)
+```
+2. heils_qrc_end_qubit  
     该模型最后将所有qubit的测量值传入下一层  
 ```
     @qml.qnode(dev, **self.qnode_kwargs)
@@ -26,7 +43,7 @@
         return single_qubit_circuit_end(hidden_state, params["weights"],
                                             self.n_qubits_, self.n_layers_)
 ```
-2. heils_qrc_end_feature  
+3. heils_qrc_end_feature  
     该模型最后一层rho，提取特征传入下一层，参考函数 ‘get_quantum_features’
 ```
     def get_quantum_features(self, rho):
@@ -38,7 +55,7 @@
         ......
         return self.get_quantum_features(rho)
 ```
-3. heils_qrc_end_feature  
+4. heils_qrc_end_feature  
     该模型将每轮rho提取特征，最后将所有特征传入下一层。
 ```
     def circuit(params, input_seq):
