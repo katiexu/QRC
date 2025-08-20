@@ -13,7 +13,16 @@
         logits = jnp.dot(features, params['linear_weights']) + params['linear_bias']
         return logits
 ```
-1. heils_qrc_end_all_expval
+- heils_qrc_fushionmodel_end_all_expval.py
+    添加fushion_model
+``` 
+    single = [[i]+[1]*2*n_layers for i in range(1,n_qubits+1)]
+    enta = [[i]+[i+1]*n_layers for i in range(1,n_qubits)]+[[n_qubits]+[1]*n_layers]
+
+    design = translator(single, enta, 'full', (n_qubits,n_layers), 1)
+    model = SeparableVariationalClassifier(jit=False, max_vmap=1, batch_size=1, n_layers=n_layers, n_qubits=n_qubits, n_classes=4,design=design)
+``` 
+- heils_qrc_end_all_expval
     数据集被分箱8份，以二进制(x,x,x)表示
 ``` 
     X_train = transform(X_train)
@@ -30,7 +39,7 @@
             all_expval.append(self.get_first_3qubit_expvals(rho))
         return jnp.array(all_expval)
 ```
-2. heils_qrc_end_qubit  
+- heils_qrc_end_qubit  
     该模型最后将所有qubit的测量值传入下一层  
 ```
     @qml.qnode(dev, **self.qnode_kwargs)
@@ -43,7 +52,7 @@
         return single_qubit_circuit_end(hidden_state, params["weights"],
                                             self.n_qubits_, self.n_layers_)
 ```
-3. heils_qrc_end_feature  
+- heils_qrc_end_feature  
     该模型最后一层rho，提取特征传入下一层，参考函数 ‘get_quantum_features’
 ```
     def get_quantum_features(self, rho):
@@ -55,7 +64,7 @@
         ......
         return self.get_quantum_features(rho)
 ```
-4. heils_qrc_end_feature  
+- heils_qrc_end_feature  
     该模型将每轮rho提取特征，最后将所有特征传入下一层。
 ```
     def circuit(params, input_seq):

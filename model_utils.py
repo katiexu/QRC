@@ -101,7 +101,7 @@ def train(
     loss_history = []
     converged = False
     start = time.time()
-    with tqdm(range(model.max_steps), desc="Training Progress",leave=False) as pbar:
+    with tqdm(range(model.max_steps), desc="Training Progress",leave=True) as pbar:
         for step in pbar:
             key_batch = random_key_generator()
             key_loss = jax.random.split(key_batch, 1)[0]
